@@ -26,3 +26,11 @@ The output of the perception and path planning is also shown below. The planned 
 ![Perception](images/Perception.png)
 
 A simple lidar and vehicle simulator are included with the NATURE-Lite for demonstaration purposes. If desired, the simulation can be replaced with a more realistic simulator like the [MSU Autonomous Vehicle Simulator (MAVS)](https://www.cavs.msstate.edu/capabilities/mavs.php).
+
+If you have [installed MAVS](https://mavs-documentation.readthedocs.io/en/latest/MavsBuildInstructions/) on your computer, then you can run the MAVS example by editing line 14 of the [MAVS simulation example](https://github.com/CGoodin/nature-lite/blob/main/src/mavs_sim_example.py) to point to your local installation of MAVS. Then, you can run the MAVS example with the command:
+```console
+#python mavs_sim_example.py
+```
+
+If successful, a rendering window depicting the MAVS simulation will appear, as shown below, along with the perception output window shown above.
+![MAVS](images/mavs.png)
