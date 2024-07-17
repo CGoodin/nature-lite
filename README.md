@@ -1,5 +1,5 @@
 # NATURE-Lite
-Navigating All Terrains Using Robotic Exploration (NATURE)-Lite is a lightweight, end-to-end autonomy stack for Ackermann-steered wheeled vehicles implemented in Python. 
+Navigating All Terrains Using Robotic Exploration (NATURE)-Lite is a lightweight, end-to-end autonomy stack for Ackermann-steered wheeled vehicles implemented in Python. Check out the [the wiki](https://github.com/CGoodin/nature-lite/wiki/NATURE%E2%80%90Lite) for detailed documentation.
 
 ## Background
 NATURE-Lite is an easy-to-use, lightweight stack that is conceptually similar to the full-featured [NATURE autonomous ground vehicle stack](https://github.com/CGoodin/nature-stack), a ROS-based autonomy stack for off-road ground vehicles implemented in C++. In contrast, NATURE-Lite is standalone python library with no ROS dependency. **The primary purpose of NATURE-Lite is as a teaching and learning tool for students first encountering ground vehicle autonomy.**
