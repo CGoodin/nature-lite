@@ -7,8 +7,7 @@ from autonomy.autonomy_msgs import Odometry
 from simulation.simulation import Simulation
 import sys
 # change the following line to the location of the mavs_python folder on your computer
-#sys.path.append(r'C:/your/full/path/to/mavs/src/mavs_python')
-sys.path.append(r'C:/Users/cgoodin/Desktop/goodin_docs/repos/mavs/src/mavs_python')
+sys.path.append(r'C:/your/full/path/to/mavs/src/mavs_python')
 import mavs_interface as mavs
 import mavs_python_paths
 mavs_data_path = mavs_python_paths.mavs_data_path # Set the path to the mavs data folder
