@@ -144,6 +144,16 @@ class Pose(object):
     def __init__(self):
         self.position = Vector3()
         self.orientation = Quaternion()
+        
+class PoseStamped(object):
+    def __init__(self):
+        self.header = Header()
+        self.pose = Pose()
+
+class Path(object):
+    def __init__(self):
+        self.header = Header()
+        self.poses = []
 
 class Twist(object):
     def __init__(self):

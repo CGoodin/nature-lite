@@ -11,8 +11,11 @@ Modified by CTG on 7/15/2024 to be faster and work with an Occupancy grid.
 """
 
 import math, sys
+from typing import Tuple
+from autonomy.autonomy_msgs import OccupancyGrid, Odometry, Vector3, Twist, Path, PoseStamped
+from autonomy.planning.planner import Planner
 
-class PotentialFieldPlanner(object):
+class PotentialFieldPlanner(Planner):
     def __init__(self):
         # Parameters
         self.k_attract = 5.0  # attractive potential gain
@@ -20,14 +23,37 @@ class PotentialFieldPlanner(object):
         self.obs_cutoff_dist = 20.0 # meters
         self.goal = None # in local ENU meters
         self.goal_thresh_dist = 4.0
+        self.pos_x = 0.0 # current robot position, in local ENU meters
+        self.pos_y = 0.0
     def SetGoal(self, gx, gy):
         self.goal = [gx, gy]
-    def GoalReached(self, px, py):
-        d = self.DistToGoal(px, py)
+    def GoalReached(self) -> bool:
+        d = self.DistToGoal(self.pos_x, self.pos_y)
         if (d<=self.goal_thresh_dist):
             return True
         else:
             return False
+    def Update(self, robot_odom_in : Odometry, goal_in : Vector3, grid_in : OccupancyGrid) -> Tuple[Twist, Path]:
+
+        self.SetGoal(goal_in.x, goal_in.y)
+
+        self.pos_x = robot_odom_in.pose.position.x
+        self.pos_y = robot_odom_in.pose.position.y
+
+        _, path_enu = self.Plan(grid_in, self.pos_x, self.pos_y)
+
+        path_out = Path()
+        for point in path_enu:
+            pose_stamped = PoseStamped()
+            pose_stamped.pose.position.x = point[0]
+            pose_stamped.pose.position.y = point[1]
+            path_out.poses.append(pose_stamped)
+
+        # This planner only produces a path, not a velocity command,
+        # so cmd_vel is left at its default (zero) value.
+        cmd_vel_out = Twist()
+
+        return cmd_vel_out, path_out
     def DistToGoal(self, px, py):
         return math.sqrt(math.pow(self.goal[0]-px,2.0)+math.pow(self.goal[1]-py,2.0))
     def hypot(self,x,y):

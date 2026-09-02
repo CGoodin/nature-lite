@@ -14,7 +14,8 @@ import math, time, sys
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 # import Vector3 class
-from autonomy_msgs import Vector3 
+from autonomy.autonomy_msgs import Vector3, Odometry
+from simulation.simulation import Simulation
 
 class Intersection(object):
     def __init__(self, dist, intersected):
@@ -140,6 +141,9 @@ class Vehicle(object):
         self.max_steer_angle = max_steer_angle
         self.drag_coeff = drag_coeff
         self.width = width
+        self.vx = 0.0
+        self.vy = 0.0
+        self.vphi = 0.0
     def Update(self, throttle, steering, dt):
         # get the current steering angle
         delta = steering*self.max_steer_angle
@@ -150,16 +154,16 @@ class Vehicle(object):
         pb = beta + self.heading
         sb = math.sin(beta)
         # calculate the deltas
-        dx = self.speed*math.cos(pb)
-        dy = self.speed*math.sin(pb)
-        dphi = (self.speed/self.lr)*sb
+        self.vx = self.speed*math.cos(pb)
+        self.vy = self.speed*math.sin(pb)
+        self.vphi = (self.speed/self.lr)*sb
         # update the state
-        self.x = self.x + dt*dx
-        self.y = self.y + dt*dy
-        self.heading = self.heading + dt*dphi
+        self.x = self.x + dt*self.vx
+        self.y = self.y + dt*self.vy
+        self.heading = self.heading + dt*self.vphi
         self.speed = self.speed + dt*accel
 
-class Simulation(object):
+class SimpleSimulation(Simulation):
     def __init__(self):
         self.vehicle = Vehicle()
         self.scene = Scene()
@@ -171,13 +175,27 @@ class Simulation(object):
         self.fig.canvas.draw()
         self.fig.canvas.manager.set_window_title('Simulation')
         self.elapsed_time = 0.0
-        self.max_time = 60.0
+        self.max_time = 35.0
         self.dt = 0.01
-        self.nsteps = 0
         self.lidar_update_steps = 10
-        self.world_limits = [[-100.0, -100.0],[100.0, 100.0]]
-        self.display_debug = False
+        self.world_limits = [[-50.0,-50.0],[50.0, 50.0]] # ENU meters
+        self.display_debug = True
         self.lock_to_real_time = False
+        self.lidar_height = 1.5 # mount height on vehicle, above ground
+
+        # set up a odoa simulation
+        self.scene.AddObject([-25.0,-8.25,0.0],[25.0,-8.0,1.0]) # right wall
+        self.scene.AddObject([-25.0,6.0,0.0],[25.0,6.25,1.0]) # left wall
+        self.scene.AddObject([-0.25,-0.25,0.0],[0.25,0.25,1.5]) #obstacle
+            
+        # put the vehicle in the starting location
+        self.vehicle.x = -45.0
+        self.vehicle.y = 0.0
+        self.vehicle.heading = 0.0 # radians North of East
+
+        self.dt = 0.01
+        self.loop_counter = 0
+
     def __bool__(self):
         return self.IsValid()
     def IsValid(self):
@@ -192,20 +210,45 @@ class Simulation(object):
         if (self.vehicle.y>self.world_limits[1][1]):
             return False
         return True
-    def Update(self, throttle, steering):
+
+    def Update(self, throttle, steering, braking):
         t0 = time.time()
         self.vehicle.Update(throttle, steering, self.dt)
-        if (self.nsteps%self.lidar_update_steps==0):
+        if (self.loop_counter%self.lidar_update_steps==0):
             
             lidar_pos = Vector3([self.vehicle.x, self.vehicle.y, self.lidar_height])
             self.lidar_points = self.lidar.Scan(lidar_pos, self.scene)
             if (self.display_debug):
                 self.Draw()
         self.elapsed_time = self.elapsed_time + self.dt
-        self.nsteps = self.nsteps + 1
+        self.loop_counter = self.loop_counter + 1
         if self.lock_to_real_time:
             while (time.time()-t0<self.dt):
                 pass
+
+    def GetPoints(self):
+        return self.lidar_points
+
+    def GetVehicleStateAsOdometry(self) -> Odometry:
+        odom = Odometry()
+        odom.pose.position.x = self.vehicle.x
+        odom.pose.position.y = self.vehicle.y
+        odom.pose.position.z = 0.0
+        odom.pose.orientation.w = math.cos(0.5*self.vehicle.heading)
+        odom.pose.orientation.x = 0.0
+        odom.pose.orientation.y = 0.0
+        odom.pose.orientation.z = math.sin(0.5*self.vehicle.heading)
+        odom.twist.linear.x = self.vehicle.vx
+        odom.twist.linear.y = self.vehicle.vy
+        odom.twist.linear.z = 0.0
+        odom.twist.angular.x = 0.0
+        odom.twist.angular.y = 0.0
+        odom.twist.angular.z = self.vehicle.vphi
+        return odom
+    
+    def GetPositionSpeedHeading(self):
+        return [self.vehicle.x, self.vehicle.y], self.vehicle.speed, self.vehicle.heading
+    
     def Draw(self):
         self.ax.clear()
         dx = self.vehicle.length*math.cos(self.vehicle.heading)
@@ -228,7 +271,7 @@ class Simulation(object):
         self.fig.canvas.flush_events()
         
 if __name__ == "__main__":
-    sim = Simulation()
+    sim = SimpleSimulation()
     sim.display_debug = True
     sim.lidar_height = 1.5
     sim.world_limits = [[-50.0,-50.0],[50.0, 50.0]]

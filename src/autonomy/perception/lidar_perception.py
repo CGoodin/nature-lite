@@ -5,9 +5,9 @@ highest lidar point and lowest lidar point divided by the cell width.
 If the slope exceeds a user defined threshold, it's flagged as an obstacle
 """
 import numpy as np
-from autonomy_msgs import Quaternion
+from autonomy.autonomy_msgs import Quaternion
 import matplotlib.pyplot as plt
-from autonomy_msgs import Vector3
+from autonomy.autonomy_msgs import Vector3
 
 class SlopeMap(object):
     def __init__(self,dimensions=None):

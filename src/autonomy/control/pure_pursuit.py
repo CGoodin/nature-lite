@@ -10,7 +10,7 @@ Modified by CTG 7/15/2024 to be modular, class-based, and interface with full st
 """
 import numpy as np
 import math
-from autonomy_msgs import DrivingCommand
+from autonomy.autonomy_msgs import DrivingCommand
 
 class State:
 
@@ -144,9 +144,8 @@ class PurePursuitController(object):
         states.append(time, self.state)
 
         target_course = TargetCourse(self.cx, self.cy)
-        target_ind, _ = target_course.search_target_index(self.state, self.k, self.look_ahead_distance)
 
         dc.throttle = proportional_control(self.target_speed, self.state.v, self.throttle_kp)
-        dc.steering, target_ind = pure_pursuit_steer_control(self.state, target_course, target_ind, self.wheelbase, self.k, self.look_ahead_distance)
+        dc.steering, target_ind = pure_pursuit_steer_control(self.state, target_course, 0, self.wheelbase, self.k, self.look_ahead_distance)
         assert lastIndex >= target_ind, "Cannot reach goal"
         return dc

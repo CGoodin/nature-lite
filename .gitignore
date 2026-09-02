@@ -8,3 +8,8 @@
 build*
 src/__pycache__
 src/*.pyc
+simulation/__pycache__
+autonomy/perception/__pycache__
+autonomy/control/__pycache__
+autonomy/perception/__pycache__
+autonomy/__pycache__
